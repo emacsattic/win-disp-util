@@ -1,13 +1,13 @@
 ;;; win-disp-util.el --- window display utilities and optimizations
 
-;; Copyright (C) 1994, 1999, 2001 Noah S. Friedman
+;; Copyright (C) 1994, 1999, 2001, 2010 Noah S. Friedman
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
 ;; Keywords: extensions
 ;; Created: 1999-06-13
 
-;; $Id: win-disp-util.el,v 1.6 2007/07/23 23:08:48 friedman Exp $
+;; $Id: win-disp-util.el,v 1.7 2010/11/16 06:15:06 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,9 +20,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, you can either send email to this
-;; program's maintainer or write to: The Free Software Foundation,
-;; Inc.; 51 Franklin Street, Fifth Floor; Boston, MA 02110-1301, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -479,6 +477,45 @@ These bindings will supercede bindings for some standard emacs commands."
   (define-key global-map "\C-x2"   'wdu-split-window-vertically)
   (define-key global-map "\C-c2"   'wdu-split-window-vertically-at-point)
   (define-key global-map "\C-ct"   'wdu-toggle-truncate-lines))
+
+
+;; When show-temp-buffer does its thing, make sure that point in the
+;; original buffer does not move; if necessary, change window-start so that
+;; the original point is still visible.
+
+(defvar wdu-temp-buffer-completion-fixup-data
+  ;; [window pos window-start]
+  (vector nil (make-marker) (make-marker)))
+
+(defun wdu-temp-buffer-completion-save-point ()
+  (save-selected-window
+    (let ((data wdu-temp-buffer-completion-fixup-data))
+      (aset data 0 (selected-window))
+      (set-buffer (window-buffer (selected-window)))
+      (set-marker (aref data 1) (point))
+      (set-marker (aref data 2) (window-start))))
+
+  ;; Make sure the restoration hook is always run last.  Especially before
+  ;; resize-temp-buffer-window runs; otherwise we do not compute the final
+  ;; window coordinates accurately.
+  (remove-hook 'temp-buffer-show-hook 'wdu-temp-buffer-completion-restore-point)
+  (add-hook 'temp-buffer-show-hook 'wdu-temp-buffer-completion-restore-point t))
+
+(defun wdu-temp-buffer-completion-restore-point ()
+  (save-selected-window
+    (let ((data wdu-temp-buffer-completion-fixup-data))
+      (select-window (aref data 0))
+      (set-buffer (window-buffer (selected-window)))
+
+      (set-window-point (selected-window) (aref data 1))
+
+      (redisplay t)
+      (when (not (pos-visible-in-window-p (aref data 2)))
+        (vertical-motion (- 2 (window-height)))
+        (set-window-start (selected-window) (point))
+        (set-window-point (selected-window) (aref data 1))))))
+
+;;(add-hook 'temp-buffer-setup-hook 'wdu-temp-buffer-completion-save-point)
 
 (provide 'win-disp-util)
 (provide 'wdu)
