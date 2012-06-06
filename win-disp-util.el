@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1999-06-13
 
-;; $Id: win-disp-util.el,v 1.7 2010/11/16 06:15:06 friedman Exp $
+;; $Id: win-disp-util.el,v 1.9 2011/05/14 00:31:35 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -255,8 +255,10 @@ If `wdu-split-window-keep-point' not `t', minimize redisplay:
 
     (let* ((n-win (next-window))
            (n-edges  (window-edges n-win))
+           (n-buffer (window-buffer n-win))
 
            (edges    (window-edges  window))
+           (buffer   (window-buffer window))
            (point    (window-point  window)))
 
       (cond ((and (= (nth 1 edges) 0)                ; top window
@@ -266,10 +268,12 @@ If `wdu-split-window-keep-point' not `t', minimize redisplay:
                    (n-point     (window-point n-win))
                    (motion      (- (window-height window))))
                (delete-window window)
+               (select-window n-win)
                (goto-char n-win-start)
                (vertical-motion motion)
                (set-window-start n-win (point))
-               (if (pos-visible-in-window-p point)
+               (if (and (eq n-buffer buffer)
+                        (pos-visible-in-window-p point))
                    (goto-char point)
                  (goto-char n-point))))
 
