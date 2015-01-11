@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1999-06-13
 
-;; $Id: win-disp-util.el,v 1.9 2011/05/14 00:31:35 friedman Exp $
+;; $Id: win-disp-util.el,v 1.10 2014/10/30 21:55:33 friedman Exp $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -298,6 +298,46 @@ If `wdu-split-window-keep-point' not `t', minimize redisplay:
 
             (t
              (delete-window window))))))
+
+
+;;;###autoload
+(defun wdu-set-window-text-height (window height)
+  "Set the height in lines of the text display area of WINDOW to HEIGHT.
+WINDOW must be a live window and defaults to the selected one.
+HEIGHT doesn't include the mode line or header line, if any, or
+any partial-height lines in the text display area.
+
+When called interactively, use a numeric prefix argument to indicate the
+desired height of the window.
+
+Note that the current implementation of this function cannot
+always set the height exactly, but attempts to be conservative,
+by allocating more lines than are actually needed in the case
+where some error may be present."
+  (interactive "i\np")
+  (when (fboundp 'window-normalize-window)
+    (setq window (window-normalize-window window t)))
+  (let ((delta (- height (window-text-height window))))
+    (unless (zerop delta)
+      (let ((window-min-height (min 2 height)))
+	(window-resize window delta)))))
+
+;;;###autoload
+(defun wdu-set-window-text-width (window width)
+  "Set the width in columns of the text display area of WINDOW to WIDTH.
+WINDOW must be a live window and defaults to the selected one.
+
+WIDTH doesn't include dividers, scrollbars, margins, fringes, nor any
+partial-width columns at the right of the text area.
+
+When called interactively, use a numeric prefix argument to indicate the
+desired width of the window."
+  (interactive "i\np")
+  (when (fboundp 'window-normalize-window)
+    (setq window (window-normalize-window window t)))
+  (let ((delta (- width (window-text-width window))))
+    (unless (zerop delta)
+      (window-resize window delta t))))
 
 
 ;;;###autoload
