@@ -1,50 +1,40 @@
 ;;; win-disp-util.el --- window display utilities and optimizations
 
-;; Copyright (C) 1994, 1999, 2001, 2010 Noah S. Friedman
-
 ;; Author: Noah Friedman <friedman@splode.com>
-;; Maintainer: friedman@splode.com
-;; Keywords: extensions
 ;; Created: 1999-06-13
+;; Public domain
 
-;; $Id: win-disp-util.el,v 1.10 2014/10/30 21:55:33 friedman Exp $
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; $Id: win-disp-util.el,v 1.11 2017/08/16 18:49:10 friedman Exp $
 
 ;;; Commentary:
-
-;; Updates of this program may be available via the URL
-;; http://www.splode.com/~friedman/software/emacs-lisp/
-
 ;;; Code:
 
+(defgroup win-disp-util nil
+  "window display utilities and optimizations"
+  :group 'win-disp-util)
+
 ;;;###autoload
-(defvar wdu-split-window-keep-point nil
+(defcustom wdu-split-window-keep-point nil
   "*If non-nil, split windows keeps the original point in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
 This is convenient on slow terminals, but point can move strangely.
 
-This variable is used by wdu-split-window-vertically.")
+If the value is neither `t' nor nil, then if point was hidden by the new
+mode line, then make the line point was on visible in the new window by
+setting the window start to that line, and select the new window.
+
+This variable is used by `wdu-split-window-vertically'."
+  :group 'win-disp-util)
 
 ;;;###autoload
-(defvar wdu-delete-window-keep-point nil
+(defcustom wdu-delete-window-keep-point nil
   "*If non-nil, when deleting a window and the window above it displays \
 the same buffer such that no display motion will occur, move to the \
-previous window and preserve point.")
+previous window and preserve point."
+  :type 'boolean
+  :group 'win-disp-util)
 
-;;;###autoload
 (defvar wdu-temporary-goal-column-commands
   '(wdu-scroll-screen-up
     wdu-scroll-screen-down
@@ -340,7 +330,6 @@ desired width of the window."
       (window-resize window delta t))))
 
 
-;;;###autoload
 (defun wdu-window-point-coordinates (&optional window pos)
   "Return the window display coordinates in WINDOW of POS.
 Calcuate the display offset in lines/columns relative to the upper
@@ -415,7 +404,6 @@ with recenter, sit-for, etc."
                          vline (/ (+ vmin vline) 2))))
                (cons vcol (+ vlast vfudge))))))))
 
-;;;###autoload
 (defun wdu-window-list (&optional minibuf all-frames device)
   "Return a list of existing windows.
 If the optional argument MINIBUF is non-nil, then include minibuffer
@@ -445,7 +433,6 @@ Any other non-nil value means search frames on all devices."
              '(minibuf all-frames)))
     wins))
 
-;;;###autoload
 (defun wdu-buffer-window (buffer &optional allp all-frames device)
   "Return window displaying BUFFER, if any.
 Buffer may be a buffer object or the name of one.
