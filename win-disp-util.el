@@ -4,7 +4,7 @@
 ;; Created: 1999-06-13
 ;; Public domain
 
-;; $Id: win-disp-util.el,v 1.11 2017/08/16 18:49:10 friedman Exp $
+;; $Id: win-disp-util.el,v 1.13 2017/09/18 22:26:06 friedman Exp $
 
 ;;; Commentary:
 ;;; Code:
@@ -25,6 +25,7 @@ mode line, then make the line point was on visible in the new window by
 setting the window start to that line, and select the new window.
 
 This variable is used by `wdu-split-window-vertically'."
+  :type  'sexp
   :group 'win-disp-util)
 
 ;;;###autoload
@@ -369,7 +370,7 @@ with recenter, sit-for, etc."
          (save-window-excursion
            (select-window window)
            (save-excursion
-             (set-buffer (window-buffer))
+             (set-buffer (window-buffer window))
              (let* ((vwidth (1- (window-width)))
                     (ccol (if truncate-lines
                               (min (current-column) vwidth)
@@ -540,7 +541,8 @@ These bindings will supercede bindings for some standard emacs commands."
 
       (set-window-point (selected-window) (aref data 1))
 
-      (redisplay t)
+      (when (boundp 'redisplay)
+        (redisplay t))
       (when (not (pos-visible-in-window-p (aref data 2)))
         (vertical-motion (- 2 (window-height)))
         (set-window-start (selected-window) (point))
@@ -550,5 +552,13 @@ These bindings will supercede bindings for some standard emacs commands."
 
 (provide 'win-disp-util)
 (provide 'wdu)
+
+;; This local variable instructs the byte compiler not to warn about using
+;; with-current-buffer instead of save-excursion + set-buffer, since we
+;; really do need to save point in the buffers.
+
+;; local variables:
+;; byte-compile-warnings: '(not suspicious)
+;; end:
 
 ;;; win-disp-util.el ends here.
